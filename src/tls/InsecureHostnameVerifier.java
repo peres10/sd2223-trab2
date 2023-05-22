@@ -18,7 +18,7 @@ public class InsecureHostnameVerifier implements HostnameVerifier {
             "users0-ourorg1.sdnet", "feeds0-ourorg1.sdnet","feeds1-ourorg1.sdnet","feeds2-ourorg1.sdnet",
             "users0-ourorg2.sdnet", "feeds0-ourorg2.sdnet","feeds1-ourorg2.sdnet","feeds2-ourorg2.sdnet");
 
-    @Override
+    /*@Override
     public boolean verify(String hostname, SSLSession session) {
         Log.info(hostname);
         Log.info("///\n");
@@ -30,6 +30,10 @@ public class InsecureHostnameVerifier implements HostnameVerifier {
             e.printStackTrace();
         }
         return ALLOWED.contains(resolvedName);
+    }*/
+    @Override
+    public boolean verify(String hostname, SSLSession session) {
+        return true;
     }
 
 }
