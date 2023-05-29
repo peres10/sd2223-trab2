@@ -86,7 +86,6 @@ public class MastodonClient implements Feeds {
             });
 
             service.signRequest(accessToken, request);
-
             Response response = service.execute(request);
             if (response.getCode() == HTTP_OK) {
                 var res = JSON.decode(response.getBody(), PostStatusResult.class);

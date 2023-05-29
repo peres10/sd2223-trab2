@@ -3,8 +3,10 @@ package sd2223.trab2.servers.rest;
 import org.glassfish.jersey.server.ResourceConfig;
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.clients.rest.MastodonClient;
+import sd2223.trab2.servers.Domain;
 import sd2223.trab2.servers.java.JavaMastodon;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class MastodonServer extends AbstractRestServer{
@@ -30,11 +32,14 @@ public class MastodonServer extends AbstractRestServer{
     }
 
     public static void main(String [] args) throws Exception{
+        Domain.set( args[0], Long.valueOf(args[1]));
 
-        apiKey = args[0];
-        apiSecret = args[1];
-        accessTokenStr = args[2];
 
+        apiKey = args[2];
+        apiSecret = args[3];
+        accessTokenStr = args[4];
+
+        System.out.println(Arrays.toString(args));
         new MastodonServer().start();
     }
 }

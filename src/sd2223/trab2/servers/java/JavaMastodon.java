@@ -13,7 +13,7 @@ public class JavaMastodon extends RestResource implements Feeds {
 
     final static Logger Log = Logger.getLogger(JavaMastodon.class.getName());
 
-    private MastodonClient mastodonClient;
+    private final MastodonClient mastodonClient;
 
     public JavaMastodon(String apiKey, String apiSecret, String accessTokenStr){
         //super(new MastodonClient(apiKey,apiSecret,accessTokenStr));
@@ -22,8 +22,8 @@ public class JavaMastodon extends RestResource implements Feeds {
 
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
-        var res = mastodonClient.postMessage(user,pwd,msg);
-        return res;
+        System.out.println("aaaa");
+        return mastodonClient.postMessage(user,pwd,msg);
     }
 
     @Override

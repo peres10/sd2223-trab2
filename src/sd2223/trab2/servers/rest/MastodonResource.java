@@ -1,5 +1,6 @@
 package sd2223.trab2.servers.rest;
 
+import jakarta.inject.Singleton;
 import sd2223.trab2.api.Message;
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.api.rest.FeedsService;
@@ -8,9 +9,10 @@ import sd2223.trab2.servers.java.JavaMastodon;
 
 import java.util.List;
 
+@Singleton
 public class MastodonResource extends RestResource implements FeedsService {
 
-    private Feeds impl ;
+    final Feeds impl ;
 
     public MastodonResource(String apiKey, String apiSecret, String accessTokenStr){
         this.impl = new JavaMastodon(apiKey,apiSecret,accessTokenStr);
