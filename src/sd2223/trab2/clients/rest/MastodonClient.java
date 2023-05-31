@@ -12,6 +12,7 @@ import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.mastodon.MastodonApi;
+import sd2223.trab2.mastodon.msgs.MastodonAccount;
 import sd2223.trab2.mastodon.msgs.PostStatusArgs;
 import sd2223.trab2.mastodon.msgs.PostStatusResult;
 import tls.InsecureHostnameVerifier;
@@ -19,6 +20,7 @@ import utils.JSON;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static sd2223.trab2.api.java.Result.ErrorCode.*;
 import static sd2223.trab2.api.java.Result.*;
@@ -39,10 +41,16 @@ public class MastodonClient implements Feeds {
     static final String ACCOUNT_FOLLOWING_PATH = "/api/v1/accounts/%s/following";
     static final String VERIFY_CREDENTIALS_PATH = "/api/v1/accounts/verify_credentials";
     static final String SEARCH_ACCOUNTS_PATH = "/api/v1/accounts/search";
+    static final String ACCOUNT_LOOKUP_PATH = "/api/v1/accounts/lookup?acct=";
     static final String ACCOUNT_FOLLOW_PATH = "/api/v1/accounts/%s/follow";
     static final String ACCOUNT_UNFOLLOW_PATH = "/api/v1/accounts/%s/unfollow";
 
     private static final int HTTP_OK = 200;
+    private static final int HTTP_FORBIDDEN = 403;
+    private static final int HTTP_BAD_REQUEST = 400;
+    private static final int HTTP_NO_CONTENT = 204;
+    private static final int HTTP_NOT_FOUND = 404;
+
 
     protected OAuth20Service service;
     protected OAuth2AccessToken accessToken;
@@ -79,17 +87,28 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         try {
+            System.out.println("MastodonClient.postMessage 1");
             final OAuthRequest request = new OAuthRequest(Verb.POST, getEndpoint(STATUSES_PATH));
-
+            System.out.println("MastodonClient.postMessage 2");
             JSON.toMap( new PostStatusArgs(msg.getText())).forEach( (k, v) -> {
                 request.addBodyParameter(k, v.toString());
             });
-
+            System.out.println("MastodonClient.postMessage 3");
             service.signRequest(accessToken, request);
+            System.out.println("MastodonClient.postMessage 4");
             Response response = service.execute(request);
+            System.out.println("MastodonClient.postMessage 5");
             if (response.getCode() == HTTP_OK) {
+                System.out.println("MastodonClient.postMessage 6");
                 var res = JSON.decode(response.getBody(), PostStatusResult.class);
+                System.out.println("MastodonClient.postMessage 7");
                 return ok(res.getId());
+            }
+            else if(response.getCode() == HTTP_FORBIDDEN){
+                return error(FORBIDDEN);
+            }
+            else if(response.getCode() == HTTP_BAD_REQUEST){
+                return error(BAD_REQUEST);
             }
         } catch (Exception x) {
             x.printStackTrace();
@@ -109,10 +128,16 @@ public class MastodonClient implements Feeds {
             if(response.getCode() == HTTP_OK){
                 return ok();
             }
+            else if(response.getCode() == HTTP_FORBIDDEN){
+                return error(FORBIDDEN);
+            }
+            else if(response.getCode() == HTTP_NOT_FOUND){
+                return error(NOT_FOUND);
+            }
         } catch (Exception x){
             x.printStackTrace();
         }
-        return error(Result.ErrorCode.INTERNAL_ERROR);
+        return error(INTERNAL_ERROR);
     }
 
     @Override
@@ -127,6 +152,10 @@ public class MastodonClient implements Feeds {
                 PostStatusResult res = JSON.decode(response.getBody(), PostStatusResult.class);
                 return ok(res.toMessage());
             }
+            else if(response.getCode() == HTTP_NOT_FOUND){
+                return error(NOT_FOUND);
+            }
+
         } catch (Exception x){
             x.printStackTrace();
         }
@@ -142,12 +171,19 @@ public class MastodonClient implements Feeds {
 
             Response response = service.execute(request);
 
-            if (response.getCode() == HTTP_OK) {
-                List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
-                });
+            if (response.getCode() == HTTP_OK ) {
+                List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {});
 
-                return ok(res.stream().map(PostStatusResult::toMessage).toList());
+                List<Message> filteredMessages = res.stream().map(PostStatusResult::toMessage).toList();
+                filteredMessages = filteredMessages.stream().filter(msg -> msg.getCreationTime() > time)
+                        .collect(Collectors.toList());
+
+                return ok(filteredMessages);
             }
+            else if(response.getCode() == HTTP_NOT_FOUND){
+                return error(NOT_FOUND);
+            }
+
         } catch (Exception x) {
             x.printStackTrace();
         }
@@ -156,21 +192,120 @@ public class MastodonClient implements Feeds {
 
     @Override
     public Result<Void> subUser(String user, String userSub, String pwd) {
-        return null;
+        try{
+            String userName = userSub.split("@")[0];
+
+            String userSubID = getIDUser(userName).value();
+
+            String fullUrl = String.format(ACCOUNT_FOLLOW_PATH,userSubID);
+            final OAuthRequest request = new OAuthRequest(Verb.POST, getEndpoint(fullUrl));
+
+            service.signRequest(accessToken, request);
+
+            Response response = service.execute(request);
+
+            if (response.getCode() == HTTP_NO_CONTENT || response.getCode() == HTTP_OK){
+                return ok();
+            } else if(response.getCode() == HTTP_NOT_FOUND){
+                return error(NOT_FOUND);
+            } else if(response.getCode() == HTTP_FORBIDDEN){
+                return error(FORBIDDEN);
+            }
+        } catch (Exception x){
+            x.printStackTrace();
+        }
+        return error(INTERNAL_ERROR);
     }
 
     @Override
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
-        return null;
+        try{
+
+            String userName = userSub.split("@")[0];
+
+            String userSubID = getIDUser(userName).value();
+
+            String fullUrl = String.format(ACCOUNT_UNFOLLOW_PATH,userSubID);
+
+            final OAuthRequest request = new OAuthRequest(Verb.POST, getEndpoint(fullUrl));
+
+            service.signRequest(accessToken, request);
+
+            Response response = service.execute(request);
+
+            if (response.getCode() == HTTP_NO_CONTENT || response.getCode() == HTTP_OK){
+                return ok();
+            } else if(response.getCode() == HTTP_NOT_FOUND){
+                return error(NOT_FOUND);
+            } else if(response.getCode() == HTTP_FORBIDDEN){
+                return error(FORBIDDEN);
+            }
+        } catch (Exception x){
+            x.printStackTrace();
+        }
+        return error(INTERNAL_ERROR);
     }
 
     @Override
     public Result<List<String>> listSubs(String user) {
-        return null;
+        try{
+            Result<String> getUserRequest = getIDUser(user);
+            if(getUserRequest.isOK()) {
+                String userID = getIDUser(user).value();
+
+
+                String fullUrl = String.format(ACCOUNT_FOLLOWING_PATH, userID);
+
+                final OAuthRequest request = new OAuthRequest(Verb.GET, getEndpoint(fullUrl));
+
+                service.signRequest(accessToken, request);
+
+                Response response = service.execute(request);
+
+                if (response.getCode() == HTTP_OK) {
+                    List<MastodonAccount> accounts = JSON.decode(response.getBody(), new TypeToken<List<MastodonAccount>>() {
+                    });
+                    List<String> subs = accounts.stream().map(MastodonAccount::username).collect(Collectors.toList());
+                    return ok(subs);
+                } else if (response.getCode() == HTTP_NOT_FOUND) {
+                    return error(NOT_FOUND);
+                } else if (response.getCode() == HTTP_FORBIDDEN) {
+                    return error(FORBIDDEN);
+                }
+            } else
+                return error(getUserRequest.error());
+        } catch (Exception x){
+            x.printStackTrace();
+        }
+        return error(INTERNAL_ERROR);
     }
 
     @Override
     public Result<Void> deleteUserFeed(String user) {
         return null;
+    }
+
+    private Result<String> getIDUser(String user){
+        try{
+
+            String searchAccountPath = ACCOUNT_LOOKUP_PATH + user;
+            final OAuthRequest request = new OAuthRequest(Verb.GET, getEndpoint(searchAccountPath));
+
+
+            service.signRequest(accessToken,request);
+
+            Response response = service.execute(request);
+
+            MastodonAccount account = JSON.decode(response.getBody(), new TypeToken<MastodonAccount>(){});
+            if(response.getCode() == HTTP_OK) {
+                return ok(account.id());
+            } else{
+                return error(NOT_FOUND);
+            }
+
+        } catch (Exception x){
+            x.printStackTrace();
+        }
+        return error(INTERNAL_ERROR);
     }
 }

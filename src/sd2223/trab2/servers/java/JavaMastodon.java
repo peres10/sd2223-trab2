@@ -22,7 +22,7 @@ public class JavaMastodon extends RestResource implements Feeds {
 
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
-        System.out.println("aaaa");
+        System.out.println("JavaMastodon.postMessage");
         return mastodonClient.postMessage(user,pwd,msg);
     }
 

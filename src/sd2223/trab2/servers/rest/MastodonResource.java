@@ -21,6 +21,7 @@ public class MastodonResource extends RestResource implements FeedsService {
 
     @Override
     public long postMessage(String user, String pwd, Message msg) {
+        System.out.println("MastodonResource.postMessage");
         return super.fromJavaResult( impl.postMessage(user, pwd, msg));
     }
 

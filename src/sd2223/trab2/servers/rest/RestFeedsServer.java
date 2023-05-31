@@ -1,5 +1,6 @@
 package sd2223.trab2.servers.rest;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.glassfish.jersey.server.ResourceConfig;
@@ -17,6 +18,9 @@ public class RestFeedsServer extends AbstractRestServer {
 	RestFeedsServer() {
 		super( Log, Feeds.SERVICENAME, PORT);
 	}
+	RestFeedsServer(Logger Log, int port) {
+		super( Log, Feeds.SERVICENAME, port);
+	}
 	
 	@Override
 	void registerResources(ResourceConfig config) {
@@ -25,6 +29,7 @@ public class RestFeedsServer extends AbstractRestServer {
 	
 	public static void main(String[] args) throws Exception {
 		Args.use( args );
+		System.out.println(Arrays.toString(args));
 		Domain.set( args[0], Long.valueOf(args[1]));
 		new RestFeedsServer().start();
 	}	

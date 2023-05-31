@@ -3,16 +3,18 @@ package sd2223.trab2.servers.rest;
 import org.glassfish.jersey.server.ResourceConfig;
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.servers.Domain;
+import utils.Args;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
-public class KafkaServer extends AbstractRestServer {
+public class KafkaServer extends RestFeedsServer {
 
-    public static final int PORT = 4567;
+    public static final int PORT = 7777;
     private static Logger Log = Logger.getLogger(KafkaServer.class.getName());
 
     KafkaServer(){
-        super(Log, Feeds.SERVICENAME, PORT);
+        super(Log, PORT);
     }
 
     @Override
@@ -22,8 +24,9 @@ public class KafkaServer extends AbstractRestServer {
     }
 
     public static void main(String[] args) throws Exception{
+        //Args.use(args);
         Domain.set( args[0], Long.valueOf(args[1]));
-
+        //System.out.println(Arrays.toString(args));
         new KafkaServer().start();
     }
 

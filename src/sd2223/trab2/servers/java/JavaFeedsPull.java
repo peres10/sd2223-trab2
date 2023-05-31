@@ -9,10 +9,7 @@ import static sd2223.trab2.api.java.Result.ErrorCode.TIMEOUT;
 import static sd2223.trab2.clients.Clients.FeedsPullClients;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -53,8 +50,13 @@ public class JavaFeedsPull extends JavaFeedsCommon<FeedsPull> implements FeedsPu
 		FeedInfo ufi = feeds.get(user);
 		if( ufi == null )
 			return error( NOT_FOUND );
-		
+
 		synchronized (ufi.user()) {
+			System.out.println("getMessage");
+			System.out.println(user);
+			System.out.println(Arrays.toString(ufi.messages().toArray()));
+			System.out.println(ufi.messages().contains(mid));
+
 			if (ufi.messages().contains(mid))
 				return ok(messages.get(mid));
 

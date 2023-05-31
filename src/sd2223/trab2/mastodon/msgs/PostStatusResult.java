@@ -1,6 +1,7 @@
 package sd2223.trab2.mastodon.msgs;
 
 import sd2223.trab2.api.Message;
+import sd2223.trab2.servers.Domain;
 
 import java.time.Instant;
 
@@ -15,14 +16,14 @@ public record PostStatusResult(String id, String content, String created_at, Mas
     }
 
     public String getText(){
-        return content;
+        return content.replaceAll("<[^>]*>", "");
     }
 
     public Message toMessage(){
         System.out.println("Account Id:"+account.id());
         System.out.println("//");
         System.out.println("Account username:"+account.username());
-        var m = new Message( getId(), account().username(), "todo", getText());
+        var m = new Message( getId(), account().username(), Domain.get(), getText());
         m.setCreationTime(getCreationTime());
         return m;
     }
