@@ -24,7 +24,7 @@ public interface FeedsService {
 	String USERSUB = "userSub";
 	
 	String PATH = "/feeds";
-	/**
+    /**
 	 * Posts a new message in the feed, associating it to the feed of the specific user.
 	 * A message should be identified before publish it, by assigning an ID.
 	 * A user must contact the server of her domain directly (i.e., this operation should not be
@@ -129,7 +129,7 @@ public interface FeedsService {
 	@GET
 	@Path("/sub/list/{" + USER + "}")
 	@Produces(MediaType.APPLICATION_JSON)
-	List<String> listSubs(@PathParam(USER) String user);	
+	List<String> listSubs(@PathParam(USER) String user);
 	
 	
 	@DELETE

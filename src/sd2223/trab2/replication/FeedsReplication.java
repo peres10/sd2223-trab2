@@ -6,7 +6,9 @@ import sd2223.trab2.api.java.Result;
 
 import java.util.List;
 
-    public class FeedsReplication implements Feeds {
+import static sd2223.trab2.api.java.Result.ErrorCode.NOT_FOUND;
+
+public class FeedsReplication implements Feeds {
         private ReplicationManager replicationManager;
         private FeedsDatabase primaryDatabase;
         private FeedsDatabase secondaryDatabase;
@@ -47,36 +49,57 @@ import java.util.List;
 
         @Override
         public Result<Message> getMessage(String user, long mid) {
-            return null;
+            Message message = primaryDatabase.getMessage(user, mid);
+            if (message != null) {
+                return Result.ok(message);
+            } else {
+                return Result.error( NOT_FOUND);
+            }
         }
 
         @Override
         public Result<List<Message>> getMessages(String user, long time) {
-            return null;
+            List<Message> messages = primaryDatabase.getMessages(user, time);
+            return Result.ok(messages);
         }
 
         @Override
         public Result<Void> subUser(String user, String userSub, String pwd) {
-            return null;
+            primaryDatabase.subUser(user, userSub, pwd);
+
+            String operation = "subUser;" + user + ";" + userSub + ";" + pwd;
+            replicationManager.replicateOperation(operation);
+
+            return Result.ok();
         }
 
         @Override
         public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
-            return null;
+            primaryDatabase.unsubscribeUser(user, userSub, pwd);
+
+            String operation = "unsubscribeUser;" + user + ";" + userSub + ";" + pwd;
+            replicationManager.replicateOperation(operation);
+
+            return Result.ok();
         }
 
         @Override
         public Result<List<String>> listSubs(String user) {
-            return null;
+            List<String> subscriptions = primaryDatabase.listSubs(user);
+            return Result.ok(subscriptions);
         }
 
         @Override
         public Result<Void> deleteUserFeed(String user) {
-            return null;
+            primaryDatabase.deleteUserFeed(user);
+
+            String operation = "deleteUserFeed;" + user;
+            replicationManager.replicateOperation(operation);
+
+            return Result.ok();
         }
 
-
-        public void close() {
+public void close() {
 
             replicationManager.close();
             primaryDatabase.close();

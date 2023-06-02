@@ -29,11 +29,15 @@ public class ReplicationManager {
         producer.send(new ProducerRecord<>(replicationTopic, operation));
     }
 
-    // Outros métodos de replicação, se necessário
+
 
     public void close() {
-        // Fechar o produtor Kafka
+
         producer.close();
+    }
+
+    public Object getCurrentVersion() {
+        return null ;
     }
 }
 
