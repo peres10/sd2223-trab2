@@ -31,6 +31,7 @@ public class MastodonClient implements Feeds {
     static String MASTODON_SOCIAL_SERVER_URI = "https://mastodon.social";
 
     static String MASTODON_SERVER_URI = MASTODON_NOVA_SERVER_URI;
+    //static String MASTODON_SERVER_URI = MASTODON_SOCIAL_SERVER_URI;
 
     private final String clientKey;
     private final String clientSecret;
@@ -87,6 +88,7 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         try {
+            System.out.println("PostMessage" + " " + user);
             System.out.println("MastodonClient.postMessage 1");
             final OAuthRequest request = new OAuthRequest(Verb.POST, getEndpoint(STATUSES_PATH));
             System.out.println("MastodonClient.postMessage 2");
@@ -119,6 +121,7 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         try {
+            System.out.println("RemoveFromPersonalFeed" + " " + user + " " + Long.toString(mid));
             final OAuthRequest request = new OAuthRequest(Verb.DELETE, getEndpoint(STATUSES_PATH + "/" + mid));
 
             service.signRequest(accessToken, request);
@@ -143,13 +146,18 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<Message> getMessage(String user, long mid) {
         try{
+            System.out.println("GetMessage" + " " + user);
             final OAuthRequest request = new OAuthRequest(Verb.GET, getEndpoint(STATUSES_PATH)+ "/" + mid);
+
+            String userName = user.split("@")[0];
 
             service.signRequest(accessToken, request);
 
             Response response = service.execute(request);
             if(response.getCode() == HTTP_OK){
                 PostStatusResult res = JSON.decode(response.getBody(), PostStatusResult.class);
+                if(!res.toMessage().getUser().equals(userName))
+                    res.toMessage().setDomain("mastodon.local");
                 return ok(res.toMessage());
             }
             else if(response.getCode() == HTTP_NOT_FOUND){
@@ -165,7 +173,10 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<List<Message>> getMessages(String user, long time) {
         try {
+            System.out.println("GetMessages" + " " + user + " "+ Long.toString(time));
             final OAuthRequest request = new OAuthRequest(Verb.GET, getEndpoint(TIMELINES_PATH));
+
+            String userName = user.split("@")[0];
 
             service.signRequest(accessToken, request);
 
@@ -177,6 +188,10 @@ public class MastodonClient implements Feeds {
                 List<Message> filteredMessages = res.stream().map(PostStatusResult::toMessage).toList();
                 filteredMessages = filteredMessages.stream().filter(msg -> msg.getCreationTime() > time)
                         .collect(Collectors.toList());
+                for(Message msg : filteredMessages){
+                    if(!msg.getUser().equals(userName))
+                        msg.setDomain("mastodon.local");
+                }
 
                 return ok(filteredMessages);
             }
@@ -193,6 +208,7 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<Void> subUser(String user, String userSub, String pwd) {
         try{
+            System.out.println("SubUser" + " " + user + " "+ userSub);
             String userName = userSub.split("@")[0];
 
             String userSubID = getIDUser(userName).value();
@@ -220,7 +236,7 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
         try{
-
+            System.out.println("SubUser" + " " + user + " "+ userSub);
             String userName = userSub.split("@")[0];
 
             String userSubID = getIDUser(userName).value();
@@ -249,6 +265,7 @@ public class MastodonClient implements Feeds {
     @Override
     public Result<List<String>> listSubs(String user) {
         try{
+            System.out.println("ListSubs" + " " + user );
             Result<String> getUserRequest = getIDUser(user);
             if(getUserRequest.isOK()) {
                 String userID = getIDUser(user).value();

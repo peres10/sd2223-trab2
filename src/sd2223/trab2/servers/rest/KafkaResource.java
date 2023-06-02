@@ -13,6 +13,7 @@ import sd2223.trab2.kafka.params.*;
 import sd2223.trab2.kafka.sync.SyncPoint;
 import sd2223.trab2.servers.java.JavaFeedsCommon;
 import sd2223.trab2.servers.java.JavaFeedsPull;
+import sd2223.trab2.servers.java.JavaKafka;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class KafkaResource extends RestResource implements FeedsService {
     public KafkaResource(long v){
         super();
         this.version = v;
-        impl = new JavaFeedsPull();
+        impl = new JavaKafka();
         generateTopic();
         this.syncPoint = new SyncPoint<>();
         ksubscriber.start(false, new RecordProcessor() {
@@ -58,11 +59,11 @@ public class KafkaResource extends RestResource implements FeedsService {
                     }
                     case "subUser" ->{
                         CommonMethodsSubs s = gson.fromJson(params, CommonMethodsSubs.class);
-                        res = impl.subUser(s.getUser(),s.getUserSub(),s.getUserSub());
+                        res = impl.subUser(s.getUser(),s.getUserSub(),s.getPwd());
                     }
                     case "unsubscribeUser" ->{
                         CommonMethodsSubs s = gson.fromJson(params, CommonMethodsSubs.class);
-                        res = impl.unsubscribeUser(s.getUser(),s.getUserSub(),s.getUserSub());
+                        res = impl.unsubscribeUser(s.getUser(),s.getUserSub(),s.getPwd());
                     }
                     case "listSubs" ->{
                         CommonParamUserID ls = gson.fromJson(params, CommonParamUserID.class);

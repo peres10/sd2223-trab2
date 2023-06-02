@@ -20,9 +20,6 @@ public record PostStatusResult(String id, String content, String created_at, Mas
     }
 
     public Message toMessage(){
-        System.out.println("Account Id:"+account.id());
-        System.out.println("//");
-        System.out.println("Account username:"+account.username());
         var m = new Message( getId(), account().username(), Domain.get(), getText());
         m.setCreationTime(getCreationTime());
         return m;
