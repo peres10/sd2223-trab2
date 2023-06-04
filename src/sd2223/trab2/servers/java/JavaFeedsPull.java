@@ -52,10 +52,6 @@ public class JavaFeedsPull extends JavaFeedsCommon<FeedsPull> implements FeedsPu
 			return error( NOT_FOUND );
 
 		synchronized (ufi.user()) {
-			System.out.println("getMessage");
-			System.out.println(user);
-			System.out.println(Arrays.toString(ufi.messages().toArray()));
-			System.out.println(ufi.messages().contains(mid));
 
 			if (ufi.messages().contains(mid))
 				return ok(messages.get(mid));
@@ -102,10 +98,12 @@ public class JavaFeedsPull extends JavaFeedsCommon<FeedsPull> implements FeedsPu
 
 	private List<Message> getCachedPersonalFeed(String name, long time) {
 		try {
-			if (FeedUser.from(name).isRemoteUser())
-				return cache.get( FeedInfoKey.from(name, time) ).value();
-			else
+			if (FeedUser.from(name).isRemoteUser()) {
+				return cache.get(FeedInfoKey.from(name, time)).value();
+			}
+			else {
 				return super.getTimeFilteredPersonalFeed(name, time);
+			}
 		} catch (Exception x) {
 			x.printStackTrace();
 		}

@@ -45,17 +45,12 @@ public abstract class JavaFeedsCommon<T extends Feeds>  implements Feeds {
 		msg.setCreationTime(System.currentTimeMillis());
 
 		FeedInfo ufi = feeds.computeIfAbsent(user, FeedInfo::new );
-		System.out.println("postMessage");
-		//System.out.println(FEEDS_MID_PREFIX);
-		//System.out.println(Domain.uuid());
-		//System.out.println(mid);
-		System.out.println(user);
-		System.out.println(Arrays.toString(ufi.messages.toArray()));
+
 		synchronized (ufi.user()) {
 			ufi.messages().add(mid);
 			messages.putIfAbsent(mid, msg);
 		}
-		System.out.println(Arrays.toString(ufi.messages.toArray()));
+
 		return Result.ok(mid);
 	}
 
