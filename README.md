@@ -1,4 +1,12 @@
-# SD2223 TP1 Reference Solution
+# Social Media platform similar to Mastodon
+Distributed Systems course project phase 2
+
+The backend of a social media platform similar  to Mastodon, utilizing REST and SOAP protocols for 
+seamless interoperability. Implemented robust concurrency control mechanisms to ensure efficient communication 
+even in the event of failures.
+In this phase the platform is integrated with the original Mastodon API, establishing a secure system with TLS
+encryption and enabling data replication using Kafka.
+
 
 This project implements both message propagation models,
 controlled by the `-push true|false` flag as an extra argument of the Feeds server in [feeds.props](https://github.com/smduarte/sd2223-trab1/blob/main/feeds.props)
